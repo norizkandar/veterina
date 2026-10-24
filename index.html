@@ -2,693 +2,1331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#edf8ff">
-  <meta name="description" content="Vaterina pet care dashboard for pets, appointments and vaccinations.">
-  <title>Vaterina | Pet Care</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --blue:#72c5f0;--blue-dark:#2689c5;--pale:#edf8ff;
-      --green:#a8e6cf;--green-dark:#31866c;--ink:#243b4a;
-      --muted:#8295a2;--line:#e8f0f4;--red:#d95362;
-      --shadow:0 8px 28px #36576b0d;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:#f7fbfd;color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    button,input,select,textarea{font:inherit}
-    button{cursor:pointer}
-    .hidden{display:none!important}
-    .auth-wrap{min-height:100vh;display:grid;place-items:center;padding:22px;background:linear-gradient(145deg,#edf8ff,#f4fff9)}
-    .auth-card{background:#fff;border:1px solid var(--line);border-radius:25px;padding:30px;width:min(100%,420px);box-shadow:var(--shadow)}
-    .brand{display:flex;align-items:center;gap:12px;font-size:23px;font-weight:800;letter-spacing:-.7px}
-    .brand-icon{width:45px;height:45px;border-radius:15px;display:grid;place-items:center;background:var(--pale);font-size:25px}
-    h1{font-size:27px;letter-spacing:-.7px;margin:0 0 7px}
-    h2{font-size:19px;margin:0 0 18px}
-    h3{font-size:16px;margin:0 0 7px}
-    p{line-height:1.6}
-    .muted{color:var(--muted)}.small{font-size:13px}
-    .auth-card h1{margin-top:28px}
-    label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}
-    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 13px;outline:none;background:#fff;color:var(--ink)}
-    input:focus,select:focus,textarea:focus{border-color:var(--blue-dark);box-shadow:0 0 0 3px #72c5f022}
-    textarea{resize:vertical;min-height:85px}
-    .btn{border:0;border-radius:11px;padding:12px 16px;font-weight:750;background:var(--blue-dark);color:#fff}
-    .btn:hover{opacity:.9}.btn:disabled{opacity:.55;cursor:wait}
-    .btn.full{width:100%;margin-top:18px}.btn.light{background:var(--pale);color:var(--blue-dark)}
-    .btn.green{background:var(--green-dark)}.btn.danger{background:#fff0f1;color:var(--red)}
-    .btn.small-btn{padding:8px 11px;font-size:12px}
-    .switch{text-align:center;margin-top:20px;font-size:14px}
-    .link{background:none;border:0;color:var(--blue-dark);font-weight:750;padding:0}
-    .notice{padding:12px;border-radius:10px;background:var(--pale);font-size:13px;line-height:1.5;overflow-wrap:anywhere;margin:12px 0}
-    .error{background:#fff0f1;color:#a62e40}.success{background:#e9fbf2;color:#226b50}
-    .app{min-height:100vh}
-    .topbar{position:sticky;top:0;z-index:5;height:74px;background:#ffffffed;backdrop-filter:blur(14px);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:0 28px}
-    .top-actions{display:flex;align-items:center;gap:12px}.user-label{font-size:13px;color:var(--muted)}
-    .layout{max-width:1450px;margin:auto;display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 74px)}
-    aside{padding:25px 16px;border-right:1px solid var(--line);background:#fff}
-    .nav-label{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1.2px;margin:12px 10px}
-    .nav-btn{width:100%;display:flex;align-items:center;gap:12px;border:0;background:transparent;color:#718795;padding:13px 12px;border-radius:12px;text-align:left;margin-bottom:5px;font-weight:650}
-    .nav-btn.active{background:var(--pale);color:var(--blue-dark)}
-    main{padding:30px;min-width:0}
-    .page-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:25px}
-    .page-head p{margin:0;color:var(--muted);font-size:14px}
-    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
-    .stat,.panel,.pet-card,.record{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
-    .stat{padding:21px}.stat-icon{width:43px;height:43px;border-radius:14px;background:var(--pale);display:grid;place-items:center;font-size:22px;margin-bottom:16px}
-    .stat-number{font-size:29px;font-weight:850}.stat-title{font-size:13px;color:var(--muted);margin-top:4px}
-    .panel{padding:23px;margin-bottom:22px}
-    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
-    .pet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-    .pet-card{padding:19px;min-width:0}
-    .pet-emoji{width:64px;height:64px;border-radius:19px;background:var(--pale);display:grid;place-items:center;font-size:36px;margin-bottom:15px}
-    .pet-meta{color:var(--muted);font-size:13px;line-height:1.7}
-    .record{padding:17px;display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:12px}
-    .record-info{min-width:0;overflow-wrap:anywhere}.record-info p{margin:5px 0 0;font-size:13px;color:var(--muted);line-height:1.5}
-    .record-actions{display:flex;gap:7px;flex-wrap:wrap}
-    .empty{text-align:center;padding:30px 10px;color:var(--muted)}
-    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
-    .span-2{grid-column:1/-1}.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-    .badge{display:inline-block;padding:5px 9px;background:#e9fbf2;color:var(--green-dark);border-radius:20px;font-size:11px;font-weight:800;text-transform:capitalize;margin-top:7px}
-    .footer-note{font-size:12px;color:var(--muted);margin-top:25px;line-height:1.6}
-    @media(max-width:850px){
-      .layout{grid-template-columns:1fr}
-      aside{position:sticky;top:74px;z-index:4;padding:9px 12px;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto}
-      .nav-label{display:none}.nav-list{display:flex;gap:5px;min-width:max-content}
-      .nav-btn{width:auto;margin:0;padding:11px 13px}main{padding:22px 16px}
-      .pet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    }
-    @media(max-width:560px){
-      .topbar{padding:0 15px;height:66px}.brand{font-size:20px}.brand-icon{width:39px;height:39px}
-      .user-label{display:none}aside{top:66px}.stats{grid-template-columns:1fr;gap:10px}
-      .stat{display:flex;align-items:center;gap:14px;padding:15px}.stat-icon{margin:0;flex-shrink:0}
-      .stat-number{font-size:23px}.grid-2,.pet-grid,.form-grid{grid-template-columns:1fr}
-      .span-2{grid-column:auto}.panel{padding:17px}.record{align-items:flex-start}
-      .record-actions{flex-direction:column}h1{font-size:24px}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4A90E2">
+<meta name="description" content="Vaterina - Manage your pets and veterinary care in one place.">
+<title>Vaterina | Pet Care</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+  --bg:#F7FAFC;
+  --surface:#FFFFFF;
+  --blue:#4A90E2;
+  --blue-light:#EAF4FF;
+  --green:#43B581;
+  --green-light:#E8F8EF;
+  --text:#172B3A;
+  --muted:#718096;
+  --border:#E2EAF0;
+  --warning:#F4B942;
+  --danger:#E45858;
+  --radius:18px;
+  --shadow:0 8px 28px rgba(36,72,105,.07);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(24px,4vw,32px);margin-bottom:8px}
+h2{font-size:20px}
+h3{font-size:16px}
+button:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible,a:focus-visible{
+  outline:3px solid #8BC2FF;outline-offset:2px;
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;border:0;border-radius:11px;padding:11px 16px;
+  font-weight:650;transition:background .2s,transform .2s;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--blue);color:white}
+.btn-primary:hover{background:#347DCB}
+.btn-soft{background:var(--blue-light);color:#2466A8}
+.btn-green{background:var(--green-light);color:#247B51}
+.btn-danger{background:#FFF0F0;color:#B93131}
+.btn-outline{background:white;border:1px solid var(--border);color:var(--text)}
+.btn-block{width:100%}
+input,select,textarea{
+  width:100%;padding:12px;border:1px solid var(--border);
+  border-radius:10px;background:white;color:var(--text);
+}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:13px;font-weight:650;margin-bottom:7px}
+.field{margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.span-2{grid-column:1/-1}
+hr{border:0;border-top:1px solid var(--border);margin:20px 0}
+.app-layout{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}
+.sidebar{
+  background:white;border-right:1px solid var(--border);
+  padding:25px 16px;display:flex;flex-direction:column;gap:25px;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px}
+.brand-icon{
+  width:43px;height:43px;border-radius:14px;background:var(--blue-light);
+  display:grid;place-items:center;font-size:24px;
+}
+.brand strong{font-size:20px;letter-spacing:-.6px}
+.brand small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.nav-label{
+  padding:0 12px;color:var(--muted);font-size:11px;
+  font-weight:800;text-transform:uppercase;letter-spacing:1px;
+}
+.nav-list{display:grid;gap:5px}
+.nav-btn{
+  border:0;background:transparent;color:#526579;text-align:left;
+  padding:13px 12px;border-radius:11px;display:flex;align-items:center;
+  gap:12px;font-weight:600;width:100%;
+}
+.nav-btn:hover,.nav-btn.active{background:var(--blue-light);color:#2466A8}
+.nav-icon{width:23px;text-align:center;font-size:18px}
+.sidebar-bottom{margin-top:auto}
+.main{min-width:0;padding:28px clamp(16px,4vw,40px)}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:15px;margin-bottom:30px;
+}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.avatar{
+  width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  background:var(--green-light);font-weight:800;color:#247B51;
+}
+.page-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:15px;flex-wrap:wrap;margin-bottom:25px;
+}
+.page-header p{color:var(--muted);margin-bottom:0}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;margin-bottom:26px;
+}
+.stat-card,.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:21px;box-shadow:var(--shadow);
+}
+.stat-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.stat-icon{
+  width:43px;height:43px;border-radius:13px;display:grid;place-items:center;
+  font-size:21px;background:var(--blue-light);
+}
+.stat-number{font-size:30px;font-weight:800;margin:17px 0 5px}
+.section-heading{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin:28px 0 15px;
+}
+.section-heading h2{margin:0}
+.pet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.pet-card{
+  background:white;border:1px solid var(--border);border-radius:17px;
+  overflow:hidden;box-shadow:var(--shadow);min-width:0;
+}
+.pet-card-top{
+  background:linear-gradient(135deg,#EAF4FF,#E8F8EF);
+  padding:22px;display:flex;align-items:center;gap:14px;
+}
+.pet-avatar{
+  width:58px;height:58px;border-radius:17px;background:white;
+  display:grid;place-items:center;font-size:31px;flex-shrink:0;
+}
+.pet-card-top h3{font-size:18px;margin-bottom:5px;overflow-wrap:anywhere}
+.pet-card-body{padding:18px}
+.pet-meta{display:grid;gap:10px;margin-bottom:18px}
+.meta-row{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.meta-row span:first-child{color:var(--muted)}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap}
+.card-actions .btn{flex:1;padding:10px 9px;font-size:13px}
+.toolbar{
+  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;
+}
+.toolbar .search{flex:1;min-width:180px}
+.toolbar select{width:auto;min-width:140px}
+.list{display:grid;gap:12px}
+.list-row{
+  background:white;border:1px solid var(--border);border-radius:14px;
+  padding:17px;display:flex;align-items:center;justify-content:space-between;
+  gap:15px;
+}
+.list-row h3{margin-bottom:5px}
+.badge{
+  display:inline-block;padding:5px 9px;border-radius:20px;
+  font-size:11px;font-weight:750;background:var(--blue-light);color:#2466A8;
+}
+.badge.pending{background:#FFF5D8;color:#876116}
+.badge.confirmed,.badge.completed,.badge.up-to-date{background:var(--green-light);color:#247B51}
+.badge.cancelled,.badge.overdue{background:#FFF0F0;color:#B93131}
+.empty{
+  text-align:center;padding:48px 20px;background:white;
+  border:1px dashed #C8D8E5;border-radius:17px;
+}
+.empty-icon{font-size:42px;margin-bottom:12px}
+.empty h3{margin-bottom:8px}
+.empty p{color:var(--muted);max-width:360px;margin:0 auto 18px}
+.notice{
+  padding:13px 15px;border-radius:11px;margin-bottom:17px;
+  font-size:14px;line-height:1.5;
+}
+.notice.info{background:var(--blue-light);color:#245B8C}
+.notice.error{background:#FFF0F0;color:#A52D2D}
+.notice.success{background:var(--green-light);color:#216B48}
+.auth-wrap{
+  min-height:100vh;display:grid;place-items:center;padding:20px;
+  background:linear-gradient(140deg,#EAF4FF,#F7FAFC 55%,#E8F8EF);
+}
+.auth-card{
+  width:min(100%,440px);background:white;padding:clamp(24px,5vw,38px);
+  border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);
+}
+.auth-card .brand{padding:0;margin-bottom:28px}
+.auth-card h1{font-size:27px}
+.auth-switch{text-align:center;margin:18px 0 0;color:var(--muted);font-size:14px}
+.text-btn{background:none;border:0;color:#2466A8;font-weight:700;padding:4px}
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(23,43,58,.42);z-index:20;
+  display:grid;place-items:center;padding:15px;overflow-y:auto;
+}
+.modal{
+  width:min(100%,650px);max-height:92vh;overflow-y:auto;background:white;
+  border-radius:20px;padding:24px;box-shadow:0 20px 70px #172b3a35;
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.icon-btn{border:0;background:var(--bg);border-radius:10px;padding:9px 12px}
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:40;max-width:min(90vw,400px);
+  padding:14px 18px;background:#172B3A;color:white;border-radius:12px;
+  box-shadow:var(--shadow);line-height:1.45;
+}
+.footer-note{color:var(--muted);font-size:12px;line-height:1.6;margin-top:24px}
+.mobile-menu{display:none}
+@media(max-width:1050px){
+  .pet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .app-layout{grid-template-columns:1fr}
+  .sidebar{
+    position:fixed;z-index:15;left:0;top:0;bottom:0;width:260px;
+    transform:translateX(-105%);transition:transform .22s;
+    box-shadow:var(--shadow);
+  }
+  .sidebar.open{transform:translateX(0)}
+  .mobile-menu{display:inline-flex}
+  .main{padding:18px 15px 35px}
+  .topbar{margin-bottom:24px}
+  .stats-grid{grid-template-columns:1fr}
+  .stat-card{padding:17px}
+  .stat-number{margin:10px 0 4px}
+  .pet-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .span-2{grid-column:auto}
+  .list-row{align-items:flex-start}
+  .list-row .card-actions{flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important}
+}
+</style>
 </head>
+
 <body>
 
+<!-- Authentication screen -->
 <section id="authScreen" class="auth-wrap">
   <div class="auth-card">
-    <div class="brand"><div class="brand-icon">🐾</div>Vaterina</div>
-    <h1 id="authTitle">Welcome back!</h1>
-    <p id="authSubtitle" class="muted">Sign in to manage your pet's care.</p>
+    <div class="brand">
+      <div class="brand-icon">🐾</div>
+      <div><strong>Vaterina</strong><small>COMPASSIONATE PET CARE</small></div>
+    </div>
+    <h1 id="authTitle">Welcome back</h1>
+    <p class="muted" id="authSubtitle">Sign in to manage your pet's care.</p>
+    <div id="authMessage" aria-live="polite"></div>
     <form id="authForm">
-      <div id="nameField" class="hidden">
-        <label for="authName">Your name</label>
-        <input id="authName" autocomplete="name" maxlength="100" placeholder="Your full name">
+      <div class="field">
+        <label for="authEmail">Email address</label>
+        <input id="authEmail" type="email" autocomplete="email" required>
       </div>
-      <label for="authEmail">Email address</label>
-      <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
-      <label for="authPassword">Password</label>
-      <input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="At least 6 characters">
-      <button id="authSubmit" class="btn full" type="submit">Sign in</button>
+      <div class="field">
+        <label for="authPassword">Password</label>
+        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required>
+      </div>
+      <button id="authSubmit" class="btn btn-primary btn-block" type="submit">Sign In</button>
     </form>
-    <div class="switch"><span id="switchText">Don't have an account?</span> <button id="switchAuth" class="link" type="button">Create account</button></div>
-    <div id="authMessage" class="notice hidden" role="status"></div>
-    <p class="footer-note">Your records are private to your account. Consult a qualified veterinarian for medical advice.</p>
+    <p class="auth-switch">
+      <span id="authSwitchText">New to Vaterina?</span>
+      <button class="text-btn" id="authSwitch" type="button">Create account</button>
+    </p>
+    <p class="footer-note">Your account and records are protected by your Supabase access policies.</p>
   </div>
 </section>
 
-<section id="appScreen" class="app hidden">
-  <header class="topbar">
-    <div class="brand"><div class="brand-icon">🐾</div>Vaterina</div>
-    <div class="top-actions"><span id="userEmail" class="user-label"></span><button id="logoutBtn" class="btn light small-btn" type="button">Log out</button></div>
-  </header>
-  <div class="layout">
-    <aside>
-      <div class="nav-label">WORKSPACE</div>
-      <nav class="nav-list">
-        <button class="nav-btn active" data-page="dashboard">🏠 Dashboard</button>
-        <button class="nav-btn" data-page="pets">🐶 My Pets</button>
-        <button class="nav-btn" data-page="appointments">📅 Appointments</button>
-        <button class="nav-btn" data-page="vaccinations">💉 Vaccinations</button>
-      </nav>
-    </aside>
-    <main>
-      <div id="globalMessage" class="notice hidden" role="status"></div>
+<!-- Main application -->
+<div id="appScreen" class="app-layout hidden">
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🐾</div>
+      <div><strong>Vaterina</strong><small>COMPASSIONATE PET CARE</small></div>
+    </div>
 
-      <section id="page-dashboard" class="page">
-        <div class="page-head">
-          <div><h1 id="welcomeTitle">Your pet care dashboard</h1><p>Keep your pet's important records in one place.</p></div>
-          <button class="btn" data-go="pets" type="button">+ Add a pet</button>
-        </div>
-        <div class="stats">
-          <div class="stat"><div class="stat-icon">🐶</div><div><div id="petCount" class="stat-number">0</div><div class="stat-title">My pets</div></div></div>
-          <div class="stat"><div class="stat-icon">📅</div><div><div id="appointmentCount" class="stat-number">0</div><div class="stat-title">Appointments</div></div></div>
-          <div class="stat"><div class="stat-icon">💉</div><div><div id="vaccineCount" class="stat-number">0</div><div class="stat-title">Vaccination records</div></div></div>
-        </div>
-        <div class="grid-2">
-          <div class="panel"><h2>🐾 My pets</h2><div id="dashboardPets"></div><button class="btn light" data-go="pets" type="button">View all pets</button></div>
-          <div class="panel"><h2>📅 Upcoming appointments</h2><div id="dashboardAppointments"></div><button class="btn light" data-go="appointments" type="button">Manage appointments</button></div>
-        </div>
-        <div class="panel"><h2>💉 Vaccination reminders</h2><div id="dashboardVaccines"></div><button class="btn light" data-go="vaccinations" type="button">View vaccination records</button></div>
-      </section>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list" aria-label="Main navigation">
+      <button class="nav-btn active" data-page="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+      <button class="nav-btn" data-page="pets"><span class="nav-icon">🐾</span>My Pets</button>
+      <button class="nav-btn" data-page="appointments"><span class="nav-icon">▣</span>Appointments</button>
+      <button class="nav-btn" data-page="vaccinations"><span class="nav-icon">✚</span>Vaccinations</button>
+    </nav>
 
-      <section id="page-pets" class="page hidden">
-        <div class="page-head"><div><h1>My Pets</h1><p>Manage your pets' profiles and health notes.</p></div></div>
-        <div class="panel">
-          <h2 id="petFormTitle">Add a pet</h2>
-          <form id="petForm">
-            <div class="form-grid">
-              <div><label for="petName">Pet name *</label><input id="petName" required maxlength="100" placeholder="e.g. Milo"></div>
-              <div><label for="petType">Animal type *</label><select id="petType" required><option value="Dog">🐶 Dog</option><option value="Cat">🐱 Cat</option><option value="Rabbit">🐰 Rabbit</option><option value="Bird">🐦 Bird</option><option value="Other">🐾 Other</option></select></div>
-              <div><label for="petBreed">Breed</label><input id="petBreed" maxlength="100" placeholder="Breed (optional)"></div>
-              <div><label for="petGender">Gender</label><select id="petGender"><option value="">Not specified</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
-              <div class="span-2"><label for="petBirthDate">Date of birth</label><input id="petBirthDate" type="date"></div>
-              <div class="span-2"><label for="petNotes">Health notes</label><textarea id="petNotes" maxlength="2000" placeholder="Allergies or important health notes"></textarea></div>
-            </div>
-            <div class="form-actions"><button id="petSaveBtn" class="btn" type="submit">Save pet</button><button id="petCancelBtn" class="btn light hidden" type="button">Cancel edit</button></div>
-          </form>
-        </div>
-        <h2>Your pets</h2><div id="petsList" class="pet-grid"></div>
-      </section>
+    <div class="sidebar-bottom">
+      <hr>
+      <button class="nav-btn" id="signOutBtn"><span class="nav-icon">↪</span>Sign Out</button>
+    </div>
+  </aside>
 
-      <section id="page-appointments" class="page hidden">
-        <div class="page-head"><div><h1>Appointments</h1><p>Keep track of visits to your veterinary clinic.</p></div></div>
-        <div class="panel"><h2>Book an appointment</h2>
-          <form id="appointmentForm">
-            <div class="form-grid">
-              <div class="span-2"><label for="appointmentPet">Choose pet *</label><select id="appointmentPet" required></select></div>
-              <div class="span-2"><label for="appointmentClinic">Clinic name *</label><input id="appointmentClinic" required maxlength="150" placeholder="Veterinary clinic"></div>
-              <div><label for="appointmentDate">Date *</label><input id="appointmentDate" type="date" required></div>
-              <div><label for="appointmentTime">Time *</label><input id="appointmentTime" type="time" required></div>
-              <div class="span-2"><label for="appointmentReason">Reason for visit</label><input id="appointmentReason" maxlength="500" placeholder="General check-up"></div>
-            </div>
-            <div class="form-actions"><button class="btn" type="submit">Save appointment</button></div>
-            <p class="small muted">Contact the clinic to confirm your booking.</p>
-          </form>
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-right">
+        <button class="btn btn-outline mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+        <div>
+          <div class="small muted">YOUR PET CARE SPACE</div>
+          <strong id="topGreeting">Welcome</strong>
         </div>
-        <h2>Your appointments</h2><div id="appointmentsList"></div>
-      </section>
+      </div>
+      <div class="avatar" aria-label="Account">🐾</div>
+    </header>
+    <div id="globalMessage" aria-live="polite"></div>
+    <section id="pageContent"></section>
+  </main>
+</div>
 
-      <section id="page-vaccinations" class="page hidden">
-        <div class="page-head"><div><h1>Vaccinations</h1><p>Record vaccines and their next due dates.</p></div></div>
-        <div class="panel"><h2>Add vaccination record</h2>
-          <form id="vaccineForm">
-            <div class="form-grid">
-              <div class="span-2"><label for="vaccinePet">Choose pet *</label><select id="vaccinePet" required></select></div>
-              <div class="span-2"><label for="vaccineName">Vaccine name *</label><input id="vaccineName" required maxlength="150" placeholder="Vaccine name"></div>
-              <div><label for="vaccineDate">Date given *</label><input id="vaccineDate" type="date" required></div>
-              <div><label for="vaccineNext">Next due date</label><input id="vaccineNext" type="date"></div>
-              <div class="span-2"><label for="vaccineClinic">Clinic name</label><input id="vaccineClinic" maxlength="150" placeholder="Clinic (optional)"></div>
-              <div class="span-2"><label for="vaccineNotes">Notes</label><textarea id="vaccineNotes" maxlength="2000" placeholder="Optional notes"></textarea></div>
-            </div>
-            <div class="form-actions"><button class="btn" type="submit">Save vaccination</button></div>
-          </form>
-        </div>
-        <h2>Your records</h2><div id="vaccinationsList"></div>
-      </section>
-      <p class="footer-note">Vaterina helps you organise records and does not replace professional veterinary care. Appointment requests are not confirmed until the clinic confirms them.</p>
-    </main>
-  </div>
-</section>
+<div id="modalRoot"></div>
+<div id="toastRoot" aria-live="polite"></div>
 
 <script>
 "use strict";
 
-// Use the Supabase Project URL and publishable key.
+/* =========================================================
+   VATERINA CONFIGURATION
+   Publishable key is intended for browser use.
+   Never place a service_role or secret key in this file.
+========================================================= */
+
 const SUPABASE_URL = "https://mbqnwtjxrdfwhuyslzeb.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_PAXoLmtcCT7fgvygE_9brQ_tHwwpqQT";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-const $ = id => document.getElementById(id);
-let currentUser = null;
-let pets = [];
-let appointments = [];
-let vaccines = [];
-let authMode = "login";
-let editingPetId = null;
-let messageTimer = null;
+if (!window.supabase) {
+  document.getElementById("authMessage").innerHTML =
+    '<div class="notice error">The Supabase library could not load. Check your internet connection and refresh.</div>';
+}
 
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
+const supabaseClient = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  : null;
+
+const state = {
+  user: null,
+  page: "dashboard",
+  pets: [],
+  appointments: [],
+  vaccinations: [],
+  loading: false,
+  authMode: "signin",
+  submittingAuth: false,
+  saving: false
+};
+
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[c]);
+  })[char]);
 }
-function petEmoji(type) {
-  return ({Dog:"🐶",Cat:"🐱",Rabbit:"🐰",Bird:"🐦",Other:"🐾"})[type] || "🐾";
+
+function safeDate(value) {
+  if (!value) return "Not provided";
+  const date = new Date(value + (String(value).length === 10 ? "T00:00:00" : ""));
+  if (Number.isNaN(date.getTime())) return "Not provided";
+  return date.toLocaleDateString(undefined, {day:"numeric",month:"short",year:"numeric"});
 }
-function formatDate(value) {
-  if (!value) return "Not set";
-  const date = new Date(value + "T00:00:00");
-  return Number.isNaN(date.getTime()) ? value :
-    date.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+
+function petEmoji(species) {
+  const s = String(species || "").toLowerCase();
+  if (s.includes("cat")) return "🐱";
+  if (s.includes("dog")) return "🐶";
+  if (s.includes("rabbit")) return "🐰";
+  if (s.includes("bird")) return "🐦";
+  if (s.includes("fish")) return "🐠";
+  return "🐾";
 }
-function displayMessage(id, message, type="") {
-  const el = $(id);
-  el.textContent = message;
-  el.className = "notice" + (type ? " " + type : "");
-  if (id === "globalMessage") {
-    clearTimeout(messageTimer);
-    messageTimer = setTimeout(() => el.classList.add("hidden"), 6000);
+
+function showToast(message) {
+  const root = $("#toastRoot");
+  root.innerHTML = '<div class="toast">' + escapeHTML(message) + '</div>';
+  window.setTimeout(() => { root.innerHTML = ""; }, 3500);
+}
+
+function showMessage(message, type = "info") {
+  $("#globalMessage").innerHTML =
+    '<div class="notice ' + escapeHTML(type) + '">' + escapeHTML(message) + '</div>';
+  if (type !== "error") {
+    window.setTimeout(() => { $("#globalMessage").innerHTML = ""; }, 4500);
   }
 }
-function clearMessage(id) {
-  $(id).className = "notice hidden";
-  $(id).textContent = "";
+
+function setAuthMessage(message, type = "error") {
+  $("#authMessage").innerHTML = message
+    ? '<div class="notice ' + escapeHTML(type) + '">' + escapeHTML(message) + '</div>'
+    : "";
 }
-function setBusy(button, busy, label) {
-  if (busy) {
-    button.dataset.oldLabel = button.textContent;
-    button.disabled = true;
-    button.textContent = label || "Please wait...";
-  } else {
-    button.disabled = false;
-    button.textContent = button.dataset.oldLabel || label || "Submit";
-  }
+
+function displayAuth(mode) {
+  state.authMode = mode;
+  const signIn = mode === "signin";
+  $("#authTitle").textContent = signIn ? "Welcome back" : "Create your account";
+  $("#authSubtitle").textContent = signIn
+    ? "Sign in to manage your pet's care."
+    : "Create an account to start managing your pets.";
+  $("#authSubmit").textContent = signIn ? "Sign In" : "Create Account";
+  $("#authSwitchText").textContent = signIn ? "New to Vaterina?" : "Already have an account?";
+  $("#authSwitch").textContent = signIn ? "Create account" : "Sign in";
+  $("#authPassword").autocomplete = signIn ? "current-password" : "new-password";
+  setAuthMessage("");
 }
+
 function showAuth() {
-  $("authScreen").classList.remove("hidden");
-  $("appScreen").classList.add("hidden");
+  $("#authScreen").classList.remove("hidden");
+  $("#appScreen").classList.add("hidden");
 }
+
 function showApp() {
-  $("authScreen").classList.add("hidden");
-  $("appScreen").classList.remove("hidden");
-  $("userEmail").textContent = currentUser?.email || "";
-}
-function setAuthMode(mode) {
-  authMode = mode;
-  const signup = mode === "signup";
-  $("authTitle").textContent = signup ? "Create your account" : "Welcome back!";
-  $("authSubtitle").textContent = signup
-    ? "Create an account to manage your pets."
-    : "Sign in to manage your pet's care.";
-  $("nameField").classList.toggle("hidden", !signup);
-  $("authName").required = signup;
-  $("authPassword").autocomplete = signup ? "new-password" : "current-password";
-  $("authSubmit").textContent = signup ? "Create account" : "Sign in";
-  $("switchText").textContent = signup ? "Already have an account?" : "Don't have an account?";
-  $("switchAuth").textContent = signup ? "Sign in" : "Create account";
-  clearMessage("authMessage");
-}
-$("switchAuth").addEventListener("click", () => setAuthMode(authMode === "login" ? "signup" : "login"));
-
-async function ensureProfile(name="") {
-  if (!currentUser) return;
-  // Profile creation is attempted separately; it must not block dashboard display.
-  const {data:existing, error:readError} = await supabaseClient
-    .from("profiles").select("id").eq("id", currentUser.id).maybeSingle();
-
-  if (readError) throw readError;
-  if (existing) return;
-
-  const {error} = await supabaseClient.from("profiles").insert({
-    id: currentUser.id,
-    full_name: name || currentUser.user_metadata?.full_name || "",
-    role: "pet_owner"
-  });
-  if (error) throw error;
+  $("#authScreen").classList.add("hidden");
+  $("#appScreen").classList.remove("hidden");
+  $("#topGreeting").textContent = state.user?.email || "Pet owner";
+  renderPage();
 }
 
-$("authForm").addEventListener("submit", async event => {
+async function handleAuth(event) {
   event.preventDefault();
-  clearMessage("authMessage");
+  if (!supabaseClient || state.submittingAuth) return;
 
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-  const fullName = $("authName").value.trim();
-  const button = $("authSubmit");
-  setBusy(button, true, "Please wait...");
+  state.submittingAuth = true;
+  const button = $("#authSubmit");
+  button.disabled = true;
+  button.textContent = "Please wait...";
+  setAuthMessage("");
+
+  const email = $("#authEmail").value.trim();
+  const password = $("#authPassword").value;
 
   try {
-    if (authMode === "signup") {
-      const {data, error} = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {data:{full_name:fullName}}
-      });
-      if (error) throw error;
-
-      if (!data.session || !data.user) {
-        displayMessage("authMessage",
-          "Account created. Check your email to confirm it, then return and sign in.",
-          "success");
-        return;
-      }
-      currentUser = data.user;
+    let result;
+    if (state.authMode === "signin") {
+      result = await supabaseClient.auth.signInWithPassword({email, password});
     } else {
-      const {data, error} = await supabaseClient.auth.signInWithPassword({email,password});
-      if (error) throw error;
-      if (!data.session || !data.user) {
-        throw new Error("No active session was returned. Check your email confirmation and try again.");
-      }
-      currentUser = data.user;
+      result = await supabaseClient.auth.signUp({email, password});
     }
 
-    // Important fix: reveal the app before loading database records.
-    showApp();
-    navigate("dashboard");
-    displayMessage("globalMessage", "Signed in. Loading your pet records...", "success");
+    if (result.error) throw result.error;
 
-    // These tasks are deliberately independent so profile setup cannot block login.
-    loadAllData().catch(error => {
-      displayMessage("globalMessage", "Dashboard opened, but records could not load: " + error.message, "error");
-    });
-    ensureProfile(fullName).catch(error => {
-      console.warn("Profile setup:", error.message);
-    });
+    if (state.authMode === "signup" && !result.data.session) {
+      setAuthMessage(
+        "Account request received. If email confirmation is enabled, check your inbox before signing in.",
+        "info"
+      );
+      return;
+    }
 
+    if (result.data.user) {
+      state.user = result.data.user;
+      await startAuthenticatedApp();
+    }
   } catch (error) {
-    displayMessage("authMessage", error.message || "Sign-in failed. Please try again.", "error");
+    console.error("Authentication failed:", error.code || error.status || "unknown");
+    setAuthMessage(userFriendlyError(error));
   } finally {
-    setBusy(button, false);
+    state.submittingAuth = false;
+    button.disabled = false;
+    button.textContent = state.authMode === "signin" ? "Sign In" : "Create Account";
+  }
+}
+
+function userFriendlyError(error) {
+  const message = String(error?.message || "").toLowerCase();
+  const code = String(error?.code || "").toLowerCase();
+
+  if (message.includes("rate limit") || code.includes("rate_limit") ||
+      message.includes("too many requests")) {
+    return "Too many authentication requests. Please wait before trying again. Do not repeatedly submit the form.";
+  }
+  if (message.includes("invalid login credentials")) {
+    return "Email or password is incorrect. Check your details and try again later.";
+  }
+  if (message.includes("email not confirmed")) {
+    return "Please confirm your email address before signing in.";
+  }
+  if (message.includes("already registered")) {
+    return "An account may already exist for this email. Try signing in instead.";
+  }
+  return "The request could not be completed. Please check your connection and try again later.";
+}
+
+$("#authForm").addEventListener("submit", handleAuth);
+$("#authSwitch").addEventListener("click", () => {
+  displayAuth(state.authMode === "signin" ? "signup" : "signin");
+});
+
+$("#signOutBtn").addEventListener("click", async () => {
+  if (!supabaseClient) return;
+  try {
+    const {error} = await supabaseClient.auth.signOut();
+    if (error) throw error;
+    state.user = null;
+    state.pets = [];
+    state.appointments = [];
+    state.vaccinations = [];
+    showAuth();
+    displayAuth("signin");
+  } catch (error) {
+    showMessage(userFriendlyError(error), "error");
   }
 });
 
-$("logoutBtn").addEventListener("click", async () => {
-  const {error} = await supabaseClient.auth.signOut();
-  if (error) {
-    displayMessage("globalMessage", error.message, "error");
-    return;
-  }
-  currentUser = null;
-  pets = [];
-  appointments = [];
-  vaccines = [];
-  showAuth();
+$("#mobileMenu").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+
+$$(".nav-btn[data-page]").forEach(button => {
+  button.addEventListener("click", () => {
+    state.page = button.dataset.page;
+    $("#sidebar").classList.remove("open");
+    $$(".nav-btn[data-page]").forEach(item =>
+      item.classList.toggle("active", item.dataset.page === state.page)
+    );
+    renderPage();
+  });
 });
+
+/* =========================================================
+   SESSION AND DATA
+========================================================= */
+
+async function startAuthenticatedApp() {
+  showApp();
+  await loadAllData();
+}
 
 async function loadAllData() {
-  if (!currentUser) return;
+  if (!state.user || !supabaseClient) return;
+  state.loading = true;
+  renderPage();
 
-  const [petResult, appointmentResult, vaccineResult] = await Promise.all([
-    supabaseClient.from("pets").select("*").order("created_at",{ascending:false}),
-    supabaseClient.from("appointments").select("*").order("appointment_date",{ascending:true}),
-    supabaseClient.from("vaccinations").select("*").order("date_given",{ascending:false})
-  ]);
+  const requests = [
+    supabaseClient.from("pets").select("*").order("created_at", {ascending:false}),
+    supabaseClient.from("appointments").select("*").order("appointment_date", {ascending:true}),
+    supabaseClient.from("vaccinations").select("*").order("date_given", {ascending:false})
+  ];
 
-  if (petResult.error) throw petResult.error;
-  if (appointmentResult.error) throw appointmentResult.error;
-  if (vaccineResult.error) throw vaccineResult.error;
-
-  pets = petResult.data || [];
-  appointments = appointmentResult.data || [];
-  vaccines = vaccineResult.data || [];
-  renderAll();
-}
-
-function renderAll() {
-  $("petCount").textContent = pets.length;
-  $("appointmentCount").textContent = appointments.filter(a => a.status !== "cancelled").length;
-  $("vaccineCount").textContent = vaccines.length;
-  const firstName = currentUser?.user_metadata?.full_name?.trim().split(/\s+/)[0];
-  $("welcomeTitle").textContent = firstName ? `Welcome, ${firstName}!` : "Your pet care dashboard";
-  renderPetOptions();
-  renderPets();
-  renderAppointments();
-  renderVaccinations();
-  renderDashboard();
-}
-
-function renderPetOptions() {
-  const options = pets.length
-    ? pets.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.animal_type)})</option>`).join("")
-    : '<option value="">Add a pet first</option>';
-  $("appointmentPet").innerHTML = options;
-  $("vaccinePet").innerHTML = options;
-  $("appointmentPet").disabled = !pets.length;
-  $("vaccinePet").disabled = !pets.length;
-}
-
-function renderPets() {
-  if (!pets.length) {
-    $("petsList").innerHTML = '<div class="empty panel"><div>🐾</div><h3>No pets yet</h3><p>Add your first pet using the form above.</p></div>';
-    return;
-  }
-  $("petsList").innerHTML = pets.map(p => `
-    <article class="pet-card">
-      <div class="pet-emoji">${petEmoji(p.animal_type)}</div>
-      <h3>${escapeHtml(p.name)}</h3>
-      <div class="pet-meta">${escapeHtml(p.animal_type)}${p.breed ? " · "+escapeHtml(p.breed):""}<br>
-      ${p.gender ? escapeHtml(p.gender):"Gender not set"}<br>
-      ${p.birth_date ? "Born "+formatDate(p.birth_date):"Birth date not set"}</div>
-      ${p.health_notes ? `<p class="small">${escapeHtml(p.health_notes)}</p>`:""}
-      <div class="form-actions">
-        <button class="btn light small-btn" data-edit-pet="${escapeHtml(p.id)}" type="button">Edit</button>
-        <button class="btn danger small-btn" data-delete-pet="${escapeHtml(p.id)}" type="button">Delete</button>
-      </div>
-    </article>`).join("");
-}
-
-function petName(id) {
-  return pets.find(p => p.id === id)?.name || "Pet";
-}
-
-function renderAppointments() {
-  if (!appointments.length) {
-    $("appointmentsList").innerHTML = '<div class="empty panel">📅<p>No appointments recorded yet.</p></div>';
-    return;
-  }
-  $("appointmentsList").innerHTML = appointments.map(a => `
-    <article class="record">
-      <div class="record-info"><h3>📅 ${escapeHtml(a.clinic_name)}</h3>
-      <p>${escapeHtml(petName(a.pet_id))} · ${formatDate(a.appointment_date)} · ${escapeHtml(String(a.appointment_time||"").slice(0,5))}</p>
-      <p>${escapeHtml(a.reason || "General check-up")}</p>
-      <span class="badge">${escapeHtml(a.status || "pending")}</span></div>
-      <div class="record-actions">${a.status !== "cancelled" && a.status !== "completed" ?
-        `<button class="btn danger small-btn" data-cancel-appointment="${escapeHtml(a.id)}" type="button">Cancel</button>`:""}</div>
-    </article>`).join("");
-}
-
-function vaccineStatus(v) {
-  if (!v.next_due_date) return "No due date";
-  const today = new Date().toLocaleDateString("en-CA");
-  if (v.next_due_date < today) return "Overdue";
-  if (v.next_due_date === today) return "Due today";
-  return "Upcoming";
-}
-
-function renderVaccinations() {
-  if (!vaccines.length) {
-    $("vaccinationsList").innerHTML = '<div class="empty panel">💉<p>No vaccination records yet.</p></div>';
-    return;
-  }
-  $("vaccinationsList").innerHTML = vaccines.map(v => `
-    <article class="record"><div class="record-info">
-      <h3>💉 ${escapeHtml(v.vaccine_name)}</h3>
-      <p>${escapeHtml(petName(v.pet_id))} · Given ${formatDate(v.date_given)}</p>
-      <p>Next due: ${formatDate(v.next_due_date)}${v.clinic_name ? " · "+escapeHtml(v.clinic_name):""}</p>
-      <span class="badge">${escapeHtml(vaccineStatus(v))}</span>
-      ${v.notes ? `<p>${escapeHtml(v.notes)}</p>`:""}
-    </div><div class="record-actions">
-      <button class="btn danger small-btn" data-delete-vaccine="${escapeHtml(v.id)}" type="button">Delete</button>
-    </div></article>`).join("");
-}
-
-function renderDashboard() {
-  $("dashboardPets").innerHTML = pets.length
-    ? pets.slice(0,4).map(p => `<div class="record"><div class="record-info"><h3>${petEmoji(p.animal_type)} ${escapeHtml(p.name)}</h3><p>${escapeHtml(p.animal_type)}${p.breed ? " · "+escapeHtml(p.breed):""}</p></div></div>`).join("")
-    : '<div class="empty">Add a pet to get started 🐾</div>';
-
-  const today = new Date().toLocaleDateString("en-CA");
-  const upcoming = appointments.filter(a => a.status !== "cancelled" && a.appointment_date >= today).slice(0,4);
-  $("dashboardAppointments").innerHTML = upcoming.length
-    ? upcoming.map(a => `<div class="record"><div class="record-info"><h3>${escapeHtml(a.clinic_name)}</h3><p>${escapeHtml(petName(a.pet_id))} · ${formatDate(a.appointment_date)}</p></div></div>`).join("")
-    : '<div class="empty">No upcoming appointments 📅</div>';
-
-  const due = vaccines.filter(v => v.next_due_date).sort((a,b) => a.next_due_date.localeCompare(b.next_due_date)).slice(0,4);
-  $("dashboardVaccines").innerHTML = due.length
-    ? due.map(v => `<div class="record"><div class="record-info"><h3>💉 ${escapeHtml(v.vaccine_name)} — ${escapeHtml(petName(v.pet_id))}</h3><p>Next due: ${formatDate(v.next_due_date)}</p><span class="badge">${escapeHtml(vaccineStatus(v))}</span></div></div>`).join("")
-    : '<div class="empty">No vaccination due dates recorded.</div>';
-}
-
-function resetPetForm() {
-  editingPetId = null;
-  $("petForm").reset();
-  $("petFormTitle").textContent = "Add a pet";
-  $("petSaveBtn").textContent = "Save pet";
-  $("petCancelBtn").classList.add("hidden");
-}
-$("petCancelBtn").addEventListener("click", resetPetForm);
-
-$("petForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!currentUser) return;
-  const idBeingEdited = editingPetId;
-  const payload = {
-    owner_id:currentUser.id,
-    name:$("petName").value.trim(),
-    animal_type:$("petType").value,
-    breed:$("petBreed").value.trim() || null,
-    gender:$("petGender").value || null,
-    birth_date:$("petBirthDate").value || null,
-    health_notes:$("petNotes").value.trim() || null
-  };
-  const button = $("petSaveBtn");
-  setBusy(button,true,"Saving...");
   try {
-    const result = idBeingEdited
-      ? await supabaseClient.from("pets").update(payload).eq("id",idBeingEdited).select().single()
-      : await supabaseClient.from("pets").insert(payload).select().single();
-    if (result.error) throw result.error;
-    resetPetForm();
-    await loadAllData();
-    displayMessage("globalMessage","Pet profile saved successfully.","success");
-  } catch(error) {
-    displayMessage("globalMessage","Could not save pet: "+error.message,"error");
-  } finally {
-    setBusy(button,false);
-  }
-});
+    const results = await Promise.all(requests);
+    const labels = ["pets", "appointments", "vaccinations"];
+    let hasError = false;
 
-$("petsList").addEventListener("click",async event => {
-  const edit = event.target.closest("[data-edit-pet]");
-  const del = event.target.closest("[data-delete-pet]");
-  if (edit) {
-    const p = pets.find(x => x.id === edit.dataset.editPet);
-    if (!p) return;
-    editingPetId = p.id;
-    $("petName").value = p.name || "";
-    $("petType").value = p.animal_type || "Other";
-    $("petBreed").value = p.breed || "";
-    $("petGender").value = p.gender || "";
-    $("petBirthDate").value = p.birth_date || "";
-    $("petNotes").value = p.health_notes || "";
-    $("petFormTitle").textContent = "Edit pet";
-    $("petSaveBtn").textContent = "Save changes";
-    $("petCancelBtn").classList.remove("hidden");
-    $("petForm").scrollIntoView({behavior:"smooth",block:"start"});
-  }
-  if (del) {
-    const p = pets.find(x => x.id === del.dataset.deletePet);
-    if (!p || !confirm(`Delete ${p.name} and its related records? This cannot be undone.`)) return;
-    try {
-      const {error} = await supabaseClient.from("pets").delete().eq("id",p.id);
-      if (error) throw error;
-      resetPetForm();
-      await loadAllData();
-      displayMessage("globalMessage","Pet and related records deleted.","success");
-    } catch(error) {
-      displayMessage("globalMessage","Could not delete pet: "+error.message,"error");
+    results.forEach((result, index) => {
+      if (result.error) {
+        console.error("Data load failed:", labels[index], result.error.code || result.error.message);
+        hasError = true;
+      }
+    });
+
+    if (!results[0].error) state.pets = results[0].data || [];
+    if (!results[1].error) state.appointments = results[1].data || [];
+    if (!results[2].error) state.vaccinations = results[2].data || [];
+
+    if (hasError) {
+      showMessage(
+        "Some records could not be loaded. Check your Supabase policies and connection. Other available sections remain usable.",
+        "error"
+      );
     }
+  } catch (error) {
+    console.error("Data loading failed.");
+    showMessage("Unable to load records. Please check your connection.", "error");
+  } finally {
+    state.loading = false;
+    renderPage();
   }
-});
+}
 
-$("appointmentForm").addEventListener("submit",async event => {
-  event.preventDefault();
-  if (!currentUser || !pets.length) return;
-  const payload = {
-    owner_id:currentUser.id,
-    pet_id:$("appointmentPet").value,
-    clinic_name:$("appointmentClinic").value.trim(),
-    appointment_date:$("appointmentDate").value,
-    appointment_time:$("appointmentTime").value,
-    reason:$("appointmentReason").value.trim() || "General check-up",
-    status:"pending"
-  };
-  try {
-    const {error} = await supabaseClient.from("appointments").insert(payload);
-    if (error) throw error;
-    $("appointmentForm").reset();
-    await loadAllData();
-    displayMessage("globalMessage","Appointment request saved. Contact the clinic to confirm.","success");
-  } catch(error) {
-    displayMessage("globalMessage","Could not save appointment: "+error.message,"error");
-  }
-});
+function todayISO() {
+  const now = new Date();
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+}
 
-$("appointmentsList").addEventListener("click",async event => {
-  const button = event.target.closest("[data-cancel-appointment]");
-  if (!button || !confirm("Cancel this appointment request?")) return;
-  try {
-    const {error} = await supabaseClient.from("appointments")
-      .update({status:"cancelled"}).eq("id",button.dataset.cancelAppointment);
-    if (error) throw error;
-    await loadAllData();
-    displayMessage("globalMessage","Appointment marked as cancelled.","success");
-  } catch(error) {
-    displayMessage("globalMessage","Could not cancel appointment: "+error.message,"error");
-  }
-});
+function upcomingAppointments() {
+  const today = todayISO();
+  return state.appointments.filter(a =>
+    a.appointment_date >= today &&
+    a.status !== "cancelled" && a.status !== "completed"
+  );
+}
 
-$("vaccineForm").addEventListener("submit",async event => {
-  event.preventDefault();
-  if (!currentUser || !pets.length) return;
-  const dateGiven = $("vaccineDate").value;
-  const nextDue = $("vaccineNext").value || null;
-  if (nextDue && dateGiven && nextDue < dateGiven) {
-    displayMessage("globalMessage","The next due date cannot be before the date given.","error");
+function vaccineStatus(record) {
+  if (!record.next_due_date) return "Unknown";
+  const today = todayISO();
+  const due = record.next_due_date;
+  if (due < today) return "Overdue";
+
+  const future = new Date(today + "T00:00:00");
+  future.setDate(future.getDate() + 30);
+  const soon = [
+    future.getFullYear(),
+    String(future.getMonth()+1).padStart(2,"0"),
+    String(future.getDate()).padStart(2,"0")
+  ].join("-");
+
+  return due <= soon ? "Due soon" : "Up to date";
+}
+
+function getPetName(id) {
+  return state.pets.find(p => p.id === id)?.name || "Pet unavailable";
+}
+
+function renderPage() {
+  if (!state.user) return;
+  const root = $("#pageContent");
+  if (state.loading) {
+    root.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><h3>Loading your records</h3><p>Please wait while Vaterina retrieves your information.</p></div>';
     return;
   }
+
+  if (state.page === "pets") root.innerHTML = petsPage();
+  else if (state.page === "appointments") root.innerHTML = appointmentsPage();
+  else if (state.page === "vaccinations") root.innerHTML = vaccinationsPage();
+  else root.innerHTML = dashboardPage();
+
+  bindPageEvents();
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function dashboardPage() {
+  const upcoming = upcomingAppointments().slice(0, 4);
+  const nextVaccines = [...state.vaccinations]
+    .filter(v => v.next_due_date)
+    .sort((a,b) => a.next_due_date.localeCompare(b.next_due_date))
+    .slice(0, 4);
+
+  return `
+    <div class="page-header">
+      <div><h1>Your pet care dashboard</h1><p>Everything you need to keep your pets cared for.</p></div>
+      <button class="btn btn-primary" data-action="add-pet">＋ Add Pet</button>
+    </div>
+    <div class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-top"><span class="muted">Registered pets</span><span class="stat-icon">🐾</span></div>
+        <div class="stat-number">${state.pets.length}</div><div class="small muted">Your pet profiles</div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-top"><span class="muted">Upcoming appointments</span><span class="stat-icon">📅</span></div>
+        <div class="stat-number">${upcomingAppointments().length}</div><div class="small muted">Not cancelled or completed</div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-top"><span class="muted">Vaccination records</span><span class="stat-icon">✚</span></div>
+        <div class="stat-number">${state.vaccinations.length}</div><div class="small muted">Saved records</div>
+      </article>
+    </div>
+    <div class="section-heading"><h2>My Pets</h2><button class="btn btn-soft" data-page-link="pets">View all</button></div>
+    ${state.pets.length ? `<div class="pet-grid">${state.pets.slice(0,3).map(petCard).join("")}</div>` : emptyState("🐾","No pets added yet","Create a pet profile to keep important information in one place.","add-pet","Add your first pet")}
+    <div class="section-heading"><h2>Upcoming appointments</h2><button class="btn btn-soft" data-page-link="appointments">View all</button></div>
+    ${upcoming.length ? `<div class="list">${upcoming.map(appointmentRow).join("")}</div>` : emptyState("📅","No upcoming appointments","Your future appointments will appear here.","add-appointment","Request appointment")}
+    <div class="section-heading"><h2>Vaccinations to review</h2><button class="btn btn-soft" data-page-link="vaccinations">View all</button></div>
+    ${nextVaccines.length ? `<div class="list">${nextVaccines.map(vaccineRow).join("")}</div>` : emptyState("💉","No upcoming dates recorded","Add vaccination records to keep track of due dates.","add-vaccine","Add vaccination")}
+  `;
+}
+
+/* =========================================================
+   MY PETS
+========================================================= */
+
+function petsPage() {
+  return `
+    <div class="page-header">
+      <div><h1>My Pets</h1><p>Manage your pet profiles and important information.</p></div>
+      <button class="btn btn-primary" data-action="add-pet">＋ Add Pet</button>
+    </div>
+    <div class="toolbar">
+      <input class="search" id="petSearch" type="search" placeholder="Search by pet name or breed..." aria-label="Search pets">
+      <select id="petSpecies" aria-label="Filter by species">
+        <option value="">All species</option>
+        ${["Dog","Cat","Rabbit","Bird","Fish","Other"].map(s=>`<option value="${s}">${s}</option>`).join("")}
+      </select>
+      <select id="petSort" aria-label="Sort pets">
+        <option value="newest">Recently added</option>
+        <option value="name-asc">Name A–Z</option>
+        <option value="name-desc">Name Z–A</option>
+        <option value="oldest">Oldest record</option>
+      </select>
+    </div>
+    <div id="petResults">${petResults(state.pets)}</div>
+    <p class="footer-note">Only records permitted by your Supabase account policies should be returned. Missing information is shown as “Not provided”.</p>
+  `;
+}
+
+function petResults(pets) {
+  if (!pets.length) return emptyState("🐾","No pets found","Try changing your search or add a new pet profile.","add-pet","Add Pet");
+  return `<div class="pet-grid">${pets.map(petCard).join("")}</div>`;
+}
+
+function petCard(pet) {
+  return `
+    <article class="pet-card">
+      <div class="pet-card-top">
+        <div class="pet-avatar" aria-hidden="true">${petEmoji(pet.animal_type)}</div>
+        <div><h3>${escapeHTML(pet.name)}</h3><div class="small muted">${escapeHTML(pet.animal_type || "Species not provided")}</div></div>
+      </div>
+      <div class="pet-card-body">
+        <div class="pet-meta">
+          <div class="meta-row"><span>Breed</span><strong>${escapeHTML(pet.breed || "Not provided")}</strong></div>
+          <div class="meta-row"><span>Sex</span><strong>${escapeHTML(pet.gender || "Not provided")}</strong></div>
+          <div class="meta-row"><span>Date of birth</span><strong>${escapeHTML(safeDate(pet.birth_date))}</strong></div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-soft" data-action="view-pet" data-id="${escapeHTML(pet.id)}">View details</button>
+          <button class="btn btn-outline" data-action="edit-pet" data-id="${escapeHTML(pet.id)}">Edit</button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function bindPetToolbar() {
+  const search = $("#petSearch");
+  if (!search) return;
+
+  const update = () => {
+    const q = search.value.trim().toLowerCase();
+    const species = $("#petSpecies").value;
+    const sort = $("#petSort").value;
+
+    let list = state.pets.filter(p => {
+      const matchesText = [p.name,p.breed,p.animal_type]
+        .some(v => String(v || "").toLowerCase().includes(q));
+      const matchesSpecies = !species ||
+        String(p.animal_type || "").toLowerCase() === species.toLowerCase();
+      return matchesText && matchesSpecies;
+    });
+
+    list.sort((a,b) => {
+      if (sort === "name-asc") return String(a.name).localeCompare(String(b.name));
+      if (sort === "name-desc") return String(b.name).localeCompare(String(a.name));
+      if (sort === "oldest") return String(a.created_at || "").localeCompare(String(b.created_at || ""));
+      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+    });
+
+    $("#petResults").innerHTML = petResults(list);
+  };
+
+  search.addEventListener("input", update);
+  $("#petSpecies").addEventListener("change", update);
+  $("#petSort").addEventListener("change", update);
+}
+
+/* =========================================================
+   PET FORMS AND DETAILS
+========================================================= */
+
+function petForm(pet = null) {
+  const editing = Boolean(pet);
+  return `
+    <div class="modal-backdrop" data-modal-backdrop>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div><h2 id="modalTitle">${editing ? "Edit pet profile" : "Add a pet"}</h2>
+          <p class="muted small">${editing ? "Update the details below." : "Enter the information you know. Optional fields can be left blank."}</p></div>
+          <button type="button" class="icon-btn" data-action="close-modal" aria-label="Close dialog">✕</button>
+        </div>
+        <form id="petForm" data-edit-id="${editing ? escapeHTML(pet.id) : ""}">
+          <div class="form-grid">
+            <div class="field">
+              <label for="petName">Pet name *</label>
+              <input id="petName" name="name" maxlength="100" required value="${escapeHTML(pet?.name || "")}">
+            </div>
+            <div class="field">
+              <label for="petType">Species *</label>
+              <select id="petType" name="animal_type" required>
+                <option value="">Select species</option>
+                ${["Dog","Cat","Rabbit","Bird","Fish","Other"].map(s=>`<option value="${s}" ${pet?.animal_type?.toLowerCase()===s.toLowerCase()?"selected":""}>${s}</option>`).join("")}
+                ${pet?.animal_type && !["Dog","Cat","Rabbit","Bird","Fish","Other"].some(s=>s.toLowerCase()===pet.animal_type.toLowerCase()) ? `<option selected value="${escapeHTML(pet.animal_type)}">${escapeHTML(pet.animal_type)}</option>` : ""}
+              </select>
+            </div>
+            <div class="field">
+              <label for="petBreed">Breed</label>
+              <input id="petBreed" name="breed" maxlength="100" value="${escapeHTML(pet?.breed || "")}" placeholder="e.g. Domestic shorthair">
+            </div>
+            <div class="field">
+              <label for="petGender">Sex</label>
+              <select id="petGender" name="gender">
+                <option value="">Not specified</option>
+                <option value="Male" ${pet?.gender==="Male"?"selected":""}>Male</option>
+                <option value="Female" ${pet?.gender==="Female"?"selected":""}>Female</option>
+                <option value="Unknown" ${pet?.gender==="Unknown"?"selected":""}>Unknown</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="petBirth">Date of birth</label>
+              <input id="petBirth" name="birth_date" type="date" max="${todayISO()}" value="${escapeHTML(pet?.birth_date || "")}">
+            </div>
+            <div class="field span-2">
+              <label for="petNotes">Health notes / additional notes</label>
+              <textarea id="petNotes" name="health_notes" maxlength="5000" placeholder="Allergies or other information you want to record">${escapeHTML(pet?.health_notes || "")}</textarea>
+            </div>
+          </div>
+          <div class="notice info small">This form uses the existing pets table fields. Weight, colour, photo and microchip are not saved because they are not in the currently documented schema.</div>
+          <div class="card-actions">
+            <button type="button" class="btn btn-outline" data-action="close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="savePetBtn">${editing ? "Save changes" : "Save pet"}</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function petDetails(pet) {
+  const appointments = state.appointments.filter(a => a.pet_id === pet.id);
+  const vaccines = state.vaccinations.filter(v => v.pet_id === pet.id);
+
+  return `
+    <div class="modal-backdrop" data-modal-backdrop>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="petDetailsTitle">
+        <div class="modal-head">
+          <div><h2 id="petDetailsTitle">${petEmoji(pet.animal_type)} ${escapeHTML(pet.name)}</h2><p class="muted small">Pet profile and associated records</p></div>
+          <button type="button" class="icon-btn" data-action="close-modal" aria-label="Close dialog">✕</button>
+        </div>
+        <div class="card" style="box-shadow:none;margin:18px 0">
+          <h3>Basic information</h3>
+          <div class="pet-meta">
+            <div class="meta-row"><span>Species</span><strong>${escapeHTML(pet.animal_type)}</strong></div>
+            <div class="meta-row"><span>Breed</span><strong>${escapeHTML(pet.breed || "Not provided")}</strong></div>
+            <div class="meta-row"><span>Sex</span><strong>${escapeHTML(pet.gender || "Not provided")}</strong></div>
+            <div class="meta-row"><span>Date of birth</span><strong>${escapeHTML(safeDate(pet.birth_date))}</strong></div>
+            <div class="meta-row"><span>Created</span><strong>${escapeHTML(safeDate(pet.created_at))}</strong></div>
+          </div>
+          <h3>Health notes</h3>
+          <p>${pet.health_notes ? escapeHTML(pet.health_notes).replace(/\n/g,"<br>") : '<span class="muted">No notes provided.</span>'}</p>
+        </div>
+        <div class="card" style="box-shadow:none;margin-bottom:14px">
+          <h3>Appointments (${appointments.length})</h3>
+          ${appointments.length ? appointments.map(a=>`<p class="small">${escapeHTML(safeDate(a.appointment_date))} · ${escapeHTML(a.clinic_name)} · ${escapeHTML(a.status)}</p>`).join("") : '<p class="muted small">No appointments recorded for this pet.</p>'}
+        </div>
+        <div class="card" style="box-shadow:none;margin-bottom:18px">
+          <h3>Vaccinations (${vaccines.length})</h3>
+          ${vaccines.length ? vaccines.map(v=>`<p class="small">${escapeHTML(v.vaccine_name)} · Given ${escapeHTML(safeDate(v.date_given))} · Next due ${escapeHTML(safeDate(v.next_due_date))}</p>`).join("") : '<p class="muted small">No vaccinations recorded for this pet.</p>'}
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-outline" data-action="close-modal">Close</button>
+          <button class="btn btn-primary" data-action="edit-pet" data-id="${escapeHTML(pet.id)}">Edit pet</button>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function openModal(html) {
+  $("#modalRoot").innerHTML = html;
+  document.body.style.overflow = "hidden";
+  const firstInput = $("#modalRoot input");
+  if (firstInput) firstInput.focus();
+}
+
+function closeModal() {
+  $("#modalRoot").innerHTML = "";
+  document.body.style.overflow = "";
+}
+
+async function savePet(event) {
+  event.preventDefault();
+  if (state.saving || !state.user) return;
+
+  const form = event.currentTarget;
+  const petId = form.dataset.editId;
+  const name = $("#petName").value.trim();
+  const animalType = $("#petType").value.trim();
+  const breed = $("#petBreed").value.trim();
+  const gender = $("#petGender").value;
+  const birthDate = $("#petBirth").value || null;
+  const healthNotes = $("#petNotes").value.trim();
+
+  if (!name || !animalType) {
+    showToast("Please enter a pet name and species.");
+    return;
+  }
+  if (birthDate && birthDate > todayISO()) {
+    showToast("Date of birth cannot be in the future.");
+    return;
+  }
+
   const payload = {
-    owner_id:currentUser.id,
-    pet_id:$("vaccinePet").value,
-    vaccine_name:$("vaccineName").value.trim(),
+    name,
+    animal_type: animalType,
+    breed: breed || null,
+    gender: gender || null,
+    birth_date: birthDate,
+    health_notes: healthNotes || null
+  };
+
+  state.saving = true;
+  const button = $("#savePetBtn");
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  try {
+    let result;
+    if (petId) {
+      result = await supabaseClient.from("pets")
+        .update(payload)
+        .eq("id", petId)
+        .select()
+        .single();
+    } else {
+      result = await supabaseClient.from("pets")
+        .insert({...payload, owner_id:state.user.id})
+        .select()
+        .single();
+    }
+
+    if (result.error) throw result.error;
+    if (!result.data) throw new Error("No saved record was returned.");
+
+    closeModal();
+    await loadAllData();
+    state.page = "pets";
+    updateActiveNav();
+    renderPage();
+    showToast(petId ? "Pet profile updated." : "Pet added successfully.");
+  } catch (error) {
+    console.error("Pet save failed:", error.code || error.message);
+    showToast("Could not save this pet. Your form is still open; check your connection and database permissions.");
+    button.disabled = false;
+    button.textContent = petId ? "Save changes" : "Save pet";
+  } finally {
+    state.saving = false;
+  }
+}
+
+/* Pet deletion is intentionally unavailable here.
+   The documented foreign keys cascade to appointment and vaccination rows.
+   Preserve those records until a safe retention/archive policy is decided. */
+
+/* =========================================================
+   APPOINTMENTS
+========================================================= */
+
+function appointmentsPage() {
+  const list = [...state.appointments].sort((a,b)=>
+    String(a.appointment_date).localeCompare(String(b.appointment_date))
+  );
+
+  return `
+    <div class="page-header">
+      <div><h1>Appointments</h1><p>Keep track of your veterinary visits.</p></div>
+      <button class="btn btn-primary" data-action="add-appointment">＋ Request appointment</button>
+    </div>
+    ${list.length ? `<div class="list">${list.map(appointmentRow).join("")}</div>` :
+      emptyState("📅","No appointments yet","Create an appointment request for one of your pets.","add-appointment","Request appointment")}
+    <p class="footer-note">Creating a request does not confirm a clinic booking. Confirmation must come from the actual clinic or booking workflow.</p>
+  `;
+}
+
+function appointmentRow(a) {
+  const status = String(a.status || "pending").toLowerCase();
+  return `
+    <article class="list-row">
+      <div>
+        <h3>${escapeHTML(a.clinic_name)}</h3>
+        <div class="small muted">${escapeHTML(getPetName(a.pet_id))} · ${escapeHTML(safeDate(a.appointment_date))} · ${escapeHTML(String(a.appointment_time || "").slice(0,5))}</div>
+        <p class="small">${escapeHTML(a.reason || "General check-up")}</p>
+        <span class="badge ${escapeHTML(status)}">${escapeHTML(status)}</span>
+      </div>
+      ${status === "pending" || status === "confirmed" ? `<button class="btn btn-outline" data-action="cancel-appointment" data-id="${escapeHTML(a.id)}">Cancel</button>` : ""}
+    </article>
+  `;
+}
+
+function appointmentForm() {
+  return `
+    <div class="modal-backdrop" data-modal-backdrop>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head"><div><h2 id="modalTitle">Request an appointment</h2><p class="muted small">This creates a pending request.</p></div><button type="button" class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div>
+        ${state.pets.length ? `
+        <form id="appointmentForm">
+          <div class="field"><label for="appointmentPet">Pet *</label><select id="appointmentPet" required>${state.pets.map(p=>`<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)}</option>`).join("")}</select></div>
+          <div class="field"><label for="clinicName">Clinic name *</label><input id="clinicName" maxlength="200" required></div>
+          <div class="form-grid">
+            <div class="field"><label for="appointmentDate">Date *</label><input id="appointmentDate" type="date" min="${todayISO()}" required></div>
+            <div class="field"><label for="appointmentTime">Time *</label><input id="appointmentTime" type="time" required></div>
+          </div>
+          <div class="field"><label for="appointmentReason">Reason for visit</label><textarea id="appointmentReason" maxlength="2000">General check-up</textarea></div>
+          <div class="card-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Cancel</button><button type="submit" class="btn btn-primary">Submit request</button></div>
+        </form>` : '<div class="notice info">Add a pet before requesting an appointment.</div><button class="btn btn-primary" data-action="add-pet">Add Pet</button>'}
+      </section>
+    </div>
+  `;
+}
+
+async function saveAppointment(event) {
+  event.preventDefault();
+  if (state.saving || !state.user) return;
+  const petId = $("#appointmentPet").value;
+  const clinic = $("#clinicName").value.trim();
+  const date = $("#appointmentDate").value;
+  const time = $("#appointmentTime").value;
+  const reason = $("#appointmentReason").value.trim() || "General check-up";
+
+  if (!petId || !clinic || !date || !time) {
+    showToast("Complete all required fields.");
+    return;
+  }
+  if (date < todayISO()) {
+    showToast("Choose today or a future date.");
+    return;
+  }
+
+  state.saving = true;
+  const button = $('#appointmentForm button[type="submit"]');
+  button.disabled = true;
+  button.textContent = "Submitting...";
+
+  try {
+    const {data,error} = await supabaseClient.from("appointments").insert({
+      owner_id:state.user.id,
+      pet_id:petId,
+      clinic_name:clinic,
+      appointment_date:date,
+      appointment_time:time,
+      reason,
+      status:"pending"
+    }).select().single();
+
+    if (error) throw error;
+    if (!data) throw new Error("No record returned.");
+
+    closeModal();
+    await loadAllData();
+    state.page = "appointments";
+    updateActiveNav();
+    renderPage();
+    showToast("Appointment request saved as pending.");
+  } catch (error) {
+    console.error("Appointment save failed:", error.code || error.message);
+    showToast("Could not save the appointment request. Check your database policies.");
+    button.disabled = false;
+    button.textContent = "Submit request";
+  } finally {
+    state.saving = false;
+  }
+}
+
+async function cancelAppointment(id) {
+  const appointment = state.appointments.find(a => a.id === id);
+  if (!appointment) return;
+  if (!confirm("Cancel this appointment request?")) return;
+
+  try {
+    const {data,error} = await supabaseClient.from("appointments")
+      .update({status:"cancelled"})
+      .eq("id",id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error("No updated record returned.");
+    await loadAllData();
+    showToast("Appointment marked as cancelled.");
+  } catch (error) {
+    console.error("Appointment update failed:", error.code || error.message);
+    showToast("Could not cancel the appointment. Check the update policy.");
+  }
+}
+
+/* =========================================================
+   VACCINATIONS
+========================================================= */
+
+function vaccinationsPage() {
+  const list = [...state.vaccinations].sort((a,b)=>
+    String(a.next_due_date || "9999-12-31").localeCompare(String(b.next_due_date || "9999-12-31"))
+  );
+
+  return `
+    <div class="page-header">
+      <div><h1>Vaccinations</h1><p>Review vaccination history and recorded due dates.</p></div>
+      <button class="btn btn-primary" data-action="add-vaccine">＋ Add record</button>
+    </div>
+    ${list.length ? `<div class="list">${list.map(vaccineRow).join("")}</div>` :
+      emptyState("💉","No vaccination records yet","Add a record to track a pet's vaccination dates.","add-vaccine","Add vaccination")}
+    <p class="footer-note">Vaterina records the dates you enter; it does not provide a veterinary diagnosis or determine an individual pet's medical needs.</p>
+  `;
+}
+
+function vaccineRow(v) {
+  const status = vaccineStatus(v).toLowerCase().replace(/\s+/g,"-");
+  return `
+    <article class="list-row">
+      <div>
+        <h3>${escapeHTML(v.vaccine_name)}</h3>
+        <div class="small muted">${escapeHTML(getPetName(v.pet_id))} · Given ${escapeHTML(safeDate(v.date_given))}</div>
+        <div class="small muted">Next due: ${escapeHTML(safeDate(v.next_due_date))}</div>
+        ${v.clinic_name ? `<div class="small muted">${escapeHTML(v.clinic_name)}</div>` : ""}
+        <p style="margin:8px 0 0"><span class="badge ${escapeHTML(status)}">${escapeHTML(vaccineStatus(v))}</span></p>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-outline" data-action="edit-vaccine" data-id="${escapeHTML(v.id)}">Edit</button>
+        <button class="btn btn-danger" data-action="delete-vaccine" data-id="${escapeHTML(v.id)}">Delete</button>
+      </div>
+    </article>
+  `;
+}
+
+function vaccineForm(v = null) {
+  const editing = Boolean(v);
+  return `
+    <div class="modal-backdrop" data-modal-backdrop>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head"><div><h2 id="modalTitle">${editing?"Edit vaccination":"Add vaccination record"}</h2><p class="muted small">Enter the information from the actual record.</p></div><button type="button" class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div>
+        ${state.pets.length ? `
+        <form id="vaccineForm" data-edit-id="${editing?escapeHTML(v.id):""}">
+          <div class="field"><label for="vaccinePet">Pet *</label><select id="vaccinePet" required>${state.pets.map(p=>`<option value="${escapeHTML(p.id)}" ${v?.pet_id===p.id?"selected":""}>${escapeHTML(p.name)}</option>`).join("")}</select></div>
+          <div class="field"><label for="vaccineName">Vaccine name *</label><input id="vaccineName" maxlength="200" required value="${escapeHTML(v?.vaccine_name||"")}"></div>
+          <div class="form-grid">
+            <div class="field"><label for="dateGiven">Date given *</label><input id="dateGiven" type="date" max="${todayISO()}" required value="${escapeHTML(v?.date_given||"")}"></div>
+            <div class="field"><label for="nextDue">Next due date</label><input id="nextDue" type="date" value="${escapeHTML(v?.next_due_date||"")}"></div>
+          </div>
+          <div class="field"><label for="vaccineClinic">Clinic</label><input id="vaccineClinic" maxlength="200" value="${escapeHTML(v?.clinic_name||"")}"></div>
+          <div class="field"><label for="vaccineNotes">Notes</label><textarea id="vaccineNotes" maxlength="3000">${escapeHTML(v?.notes||"")}</textarea></div>
+          <div class="card-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Cancel</button><button type="submit" class="btn btn-primary" id="saveVaccineBtn">Save record</button></div>
+        </form>` : '<div class="notice info">Add a pet before creating a vaccination record.</div><button class="btn btn-primary" data-action="add-pet">Add Pet</button>'}
+      </section>
+    </div>
+  `;
+}
+
+async function saveVaccine(event) {
+  event.preventDefault();
+  if (state.saving || !state.user) return;
+
+  const form = event.currentTarget;
+  const id = form.dataset.editId;
+  const petId = $("#vaccinePet").value;
+  const vaccineName = $("#vaccineName").value.trim();
+  const dateGiven = $("#dateGiven").value;
+  const nextDue = $("#nextDue").value || null;
+  const clinic = $("#vaccineClinic").value.trim();
+  const notes = $("#vaccineNotes").value.trim();
+
+  if (!petId || !vaccineName || !dateGiven) {
+    showToast("Complete the required vaccination fields.");
+    return;
+  }
+  if (dateGiven > todayISO()) {
+    showToast("Date given cannot be in the future.");
+    return;
+  }
+  if (nextDue && nextDue < dateGiven) {
+    showToast("Next due date cannot be earlier than date given.");
+    return;
+  }
+
+  state.saving = true;
+  const button = $("#saveVaccineBtn");
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  const payload = {
+    pet_id:petId,
+    vaccine_name:vaccineName,
     date_given:dateGiven,
     next_due_date:nextDue,
-    clinic_name:$("vaccineClinic").value.trim() || null,
-    notes:$("vaccineNotes").value.trim() || null
+    clinic_name:clinic || null,
+    notes:notes || null
   };
-  try {
-    const {error} = await supabaseClient.from("vaccinations").insert(payload);
-    if (error) throw error;
-    $("vaccineForm").reset();
-    await loadAllData();
-    displayMessage("globalMessage","Vaccination record saved.","success");
-  } catch(error) {
-    displayMessage("globalMessage","Could not save vaccination: "+error.message,"error");
-  }
-});
 
-$("vaccinationsList").addEventListener("click",async event => {
-  const button = event.target.closest("[data-delete-vaccine]");
-  if (!button || !confirm("Delete this vaccination record?")) return;
   try {
-    const {error} = await supabaseClient.from("vaccinations").delete().eq("id",button.dataset.deleteVaccine);
+    let result;
+    if (id) {
+      result = await supabaseClient.from("vaccinations")
+        .update(payload).eq("id",id).select().single();
+    } else {
+      result = await supabaseClient.from("vaccinations")
+        .insert({...payload,owner_id:state.user.id}).select().single();
+    }
+    if (result.error) throw result.error;
+    if (!result.data) throw new Error("No saved record returned.");
+
+    closeModal();
+    await loadAllData();
+    state.page = "vaccinations";
+    updateActiveNav();
+    renderPage();
+    showToast(id ? "Vaccination record updated." : "Vaccination record saved.");
+  } catch (error) {
+    console.error("Vaccination save failed:", error.code || error.message);
+    showToast("Could not save the vaccination record. Check your database permissions.");
+    button.disabled = false;
+    button.textContent = "Save record";
+  } finally {
+    state.saving = false;
+  }
+}
+
+async function deleteVaccine(id) {
+  const record = state.vaccinations.find(v => v.id === id);
+  if (!record) return;
+  if (!confirm("Delete this vaccination record? This cannot be undone.")) return;
+
+  try {
+    const {error} = await supabaseClient.from("vaccinations").delete().eq("id",id);
     if (error) throw error;
     await loadAllData();
-    displayMessage("globalMessage","Vaccination record deleted.","success");
-  } catch(error) {
-    displayMessage("globalMessage","Could not delete record: "+error.message,"error");
+    showToast("Vaccination record deleted.");
+  } catch (error) {
+    console.error("Vaccination delete failed:", error.code || error.message);
+    showToast("Could not delete the record. Check your database permissions.");
   }
-});
+}
+
+/* =========================================================
+   EMPTY STATES AND EVENTS
+========================================================= */
+
+function emptyState(icon,title,description,action,label) {
+  return `
+    <div class="empty">
+      <div class="empty-icon">${icon}</div>
+      <h3>${escapeHTML(title)}</h3>
+      <p>${escapeHTML(description)}</p>
+      ${action ? `<button class="btn btn-primary" data-action="${escapeHTML(action)}">${escapeHTML(label)}</button>` : ""}
+    </div>
+  `;
+}
+
+function updateActiveNav() {
+  $$(".nav-btn[data-page]").forEach(item =>
+    item.classList.toggle("active", item.dataset.page === state.page)
+  );
+}
 
 function navigate(page) {
-  document.querySelectorAll(".page").forEach(el => el.classList.add("hidden"));
-  $("page-"+page)?.classList.remove("hidden");
-  document.querySelectorAll(".nav-btn").forEach(button => {
-    button.classList.toggle("active",button.dataset.page === page);
-  });
+  state.page = page;
+  updateActiveNav();
+  renderPage();
   window.scrollTo({top:0,behavior:"smooth"});
 }
-document.querySelectorAll(".nav-btn").forEach(button => button.addEventListener("click",() => navigate(button.dataset.page)));
-document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click",() => navigate(button.dataset.go)));
 
-// Check the saved session when the page loads.
-async function startApp() {
-  try {
-    const {data,error} = await supabaseClient.auth.getSession();
-    if (error) throw error;
+function bindPageEvents() {
+  bindPetToolbar();
+  const root = $("#pageContent");
+
+  root.querySelectorAll("[data-action]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+
+      if (action === "add-pet") openModal(petForm());
+      if (action === "edit-pet") {
+        const pet = state.pets.find(p => p.id === id);
+        if (pet) openModal(petForm(pet));
+      }
+      if (action === "view-pet") {
+        const pet = state.pets.find(p => p.id === id);
+        if (pet) openModal(petDetails(pet));
+      }
+      if (action === "add-appointment") openModal(appointmentForm());
+      if (action === "cancel-appointment") await cancelAppointment(id);
+      if (action === "add-vaccine") openModal(vaccineForm());
+      if (action === "edit-vaccine") {
+        const vaccine = state.vaccinations.find(v => v.id === id);
+        if (vaccine) openModal(vaccineForm(vaccine));
+      }
+      if (action === "delete-vaccine") await deleteVaccine(id);
+    });
+  });
+
+  root.querySelectorAll("[data-page-link]").forEach(button => {
+    button.addEventListener("click", () => navigate(button.dataset.pageLink));
+  });
+
+  root.addEventListener("submit", async event => {
+    if (event.target.id === "petForm") await savePet(event);
+    if (event.target.id === "appointmentForm") await saveAppointment(event);
+    if (event.target.id === "vaccineForm") await saveVaccine(event);
+  }, {once:true});
+}
+
+$("#modalRoot").addEventListener("click", event => {
+  if (event.target.matches("[data-modal-backdrop]") ||
+      event.target.closest('[data-action="close-modal"]')) {
+    closeModal();
+  }
+});
+
+$("#modalRoot").addEventListener("submit", event => {
+  // Modal forms are delegated here so forms remain functional after each render.
+  if (event.target.id === "petForm") savePet(event);
+  if (event.target.id === "appointmentForm") saveAppointment(event);
+  if (event.target.id === "vaccineForm") saveVaccine(event);
+});
+
+// The form submit listener is delegated at the modal root. Remove any stale
+// modal when the Escape key is pressed.
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && $("#modalRoot").innerHTML) closeModal();
+});
+
+if (supabaseClient) {
+  supabaseClient.auth.getSession().then(({data,error}) => {
+    if (error) {
+      console.error("Session check failed:", error.code || error.status);
+      showAuth();
+      return;
+    }
     if (data.session?.user) {
-      currentUser = data.session.user;
-      showApp();
-      navigate("dashboard");
-      loadAllData().catch(error => displayMessage("globalMessage","Could not load records: "+error.message,"error"));
-      ensureProfile(currentUser.user_metadata?.full_name || "").catch(error => console.warn("Profile:",error.message));
+      state.user = data.session.user;
+      startAuthenticatedApp();
     } else {
       showAuth();
     }
-  } catch(error) {
-    showAuth();
-    displayMessage("authMessage","Unable to check login session: "+error.message,"error");
-  }
+  }).catch(() => showAuth());
+
+  // Update UI when Supabase reports an auth state change.
+  // No automatic login retries are performed.
+  supabaseClient.auth.onAuthStateChange((event,session) => {
+    if (event === "SIGNED_OUT") {
+      state.user = null;
+      state.pets = [];
+      state.appointments = [];
+      state.vaccinations = [];
+      showAuth();
+    }
+  });
+} else {
+  showAuth();
 }
-
-supabaseClient.auth.onAuthStateChange((event,session) => {
-  if (event === "SIGNED_OUT") {
-    currentUser = null;
-    pets = [];
-    appointments = [];
-    vaccines = [];
-    showAuth();
-  }
-});
-
-startApp();
 </script>
 </body>
 </html>
